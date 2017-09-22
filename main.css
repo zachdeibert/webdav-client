@@ -1,0 +1,16 @@
+.nav-wrapper {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.btn-floating {
+    position: fixed;
+    bottom: 45px;
+    right: 24px;
+}
+body {
+    width: 100vw;
+    height: 100vh;
+}
+.container {
+    margin-top: 50px;
+}

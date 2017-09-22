@@ -1,0 +1,3 @@
+function connect() {
+    return false;
+}
