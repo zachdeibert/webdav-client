@@ -1,7 +1,9 @@
+const child_process = require("child_process");
 const electron = require("electron");
 const electronSettings = require("electron-settings");
 const http = require("http");
 const httpProxy = require("http-proxy");
+const os = require("os");
 const path = require("path");
 const url = require("url");
 
@@ -84,6 +86,7 @@ electron.ipcMain.on("enable", (ev, i) => {
     const server = http.createServer((req, res) => {
         proxy.web(req, res);
     });
+    server.on("close", () => proxy.close());
     const tryListen = tryNum => {
         const port = 49152 + Math.floor(16384 * Math.random());
         server.listen(port, "localhost", err => {
@@ -98,7 +101,11 @@ electron.ipcMain.on("enable", (ev, i) => {
                 site.mount = true;
                 electronSettings.set("sites", sites);
                 servers[site.id] = server;
-                console.log(`dav://localhost:${port}${parsedUrl.path}`);
+                const davUrl = `dav://localhost:${port}${parsedUrl.path}`;
+                console.log(davUrl);
+                child_process.spawn("gvfs-mount", [
+                    davUrl
+                ]);
             }
         });
     };
@@ -159,6 +166,13 @@ electron.app.on("ready", () => {
 });
 
 electron.app.on("window-all-closed", () => {});
+
+electron.app.on("quit", () => {
+    const ids = Object.getOwnPropertyNames(servers);
+    for (var i = 0; i < ids.length; ++i) {
+        servers[ids[i]].close();
+    }
+});
 
 electron.app.on("activate", () => {
     if (win === null) {
