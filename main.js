@@ -6,6 +6,7 @@ const httpProxy = require("http-proxy");
 const os = require("os");
 const path = require("path");
 const url = require("url");
+const windowsDriveLetters = require("windows-drive-letters");
 
 let win = null;
 let connectUrl = null;
@@ -103,9 +104,34 @@ electron.ipcMain.on("enable", (ev, i) => {
                 servers[site.id] = server;
                 const davUrl = `dav://localhost:${port}${parsedUrl.path}`;
                 console.log(davUrl);
-                child_process.spawn("gvfs-mount", [
-                    davUrl
-                ]);
+                switch (process.platform) {
+                    case "linux":
+                        child_process.spawn("gvfs-mount", [
+                            davUrl
+                        ]);
+                        server.on("close", () => child_process.spawn("gvfs-mount", [
+                            "-u",
+                            davUrl
+                        ]));
+                        break;
+                    case "win32":
+                        windowsDriveLetters.randomLetter().then(letter => {
+                            child_process.spawn("net", [
+                                "use",
+                                `${letter}:`,
+                                `http://localhost:${port}${parsedUrl.path}`,
+                                "/P:Yes"
+                            ]);
+                            server.on("close", () => child_process.spawn("net", [
+                                "use",
+                                `${letter}:`,
+                                "/delete"
+                            ]));
+                        });
+                        break;
+                    default:
+                        console.error("Unknown platform!");
+                }
             }
         });
     };
