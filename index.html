@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8" />
         <title>
             WebDAV Client
         </title>
-        <link rel="stylesheet" href="materialize.css" />
+        <link rel="stylesheet" href="materialize-css/css/materialize.min.css" />
         <link rel="stylesheet" href="material-icons.css" />
         <link rel="stylesheet" href="main.css" />
+        <script src="index.js"></script>
     </head>
     <body class="blue lighten-5">
         <nav class="blue">
@@ -16,10 +18,17 @@
                 </a>
             </div>
         </nav>
-        <a class="btn-floating btn-large red" href="add.html">
+        <a class="btn-floating btn-floating-fixed btn-large red" href="add.html">
             <i class="material-icons">
                 add
             </i>
         </a>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <script>printSites();</script>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
