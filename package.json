@@ -13,8 +13,8 @@
         "react-scripts": "^1.0.13"
     },
     "scripts": {
-        "dev": "BROWSER=none react-scripts start",
-        "start": "DEV=1 electron .",
+        "dev": "react-scripts start",
+        "start": "electron . --dev",
         "build": "react-scripts build"
     },
     "main": "back/main.js",

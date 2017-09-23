@@ -8,13 +8,27 @@ let baseUrl = null;
 
 exports.loadURL = (win, relativeUrl) => {
     if (baseUrl === null) {
-        if (process.env.DEV) {
+        let isDev = false;
+        for (var i = 0; i < process.argv.length; ++i) {
+            if (process.argv[i] == "--dev") {
+                isDev = true;
+                break;
+            }
+        }
+        if (isDev) {
+            let env = {};
+            const keys = Object.getOwnPropertyNames(process.env);
+            for (var i = 0; i < keys.length; ++i) {
+                env[keys[i]] = process.env[keys[i]];
+            }
+            env.BROWSER = "none";
             const proc = child_process.spawn("npm", [
                 "run",
                 "dev"
             ], {
                 "cwd": path.join(__dirname, ".."),
-                "stdio": "inherit"
+                "stdio": "inherit",
+                "env": env
             });
             electron.app.on("quit", () => proc.kill());
             baseUrl = "http://localhost:3000/#";
