@@ -27,11 +27,9 @@ exports.loadURL = (win, relativeUrl) => {
                     npm.commands["run-script"]([
                         "dev"
                     ], (err, a) => {
-                        console.log(a);
                         if (err) {
                             console.error(err);
                         }
-                        // electron.app.on("quit", () => proc.kill());
                     });
                 }
             });
