@@ -6,7 +6,7 @@ const url = require("url");
 
 let baseUrl = null;
 
-exports.loadURL = (win, url) => {
+exports.loadURL = (win, relativeUrl) => {
     if (baseUrl === null) {
         if (process.env.DEV) {
             const proc = child_process.spawn("npm", [
@@ -27,7 +27,7 @@ exports.loadURL = (win, url) => {
                     "timeout": 1000
                 }, () => {
                     console.log("Connected to development server.");
-                    win.loadURL(baseUrl + url);
+                    win.loadURL(baseUrl + relativeUrl);
                 }).once("error", () => {
                     console.log("Unable to connect to development server.");
                     setTimeout(loop, 100);
@@ -42,9 +42,9 @@ exports.loadURL = (win, url) => {
                 "protocol": "file:",
                 "slashes": true
             })}#`;
-            win.loadURL(baseUrl + url);
+            win.loadURL(baseUrl + relativeUrl);
         }
     } else {
-        win.loadURL(baseUrl + url);
+        win.loadURL(baseUrl + relativeUrl);
     }
 };
