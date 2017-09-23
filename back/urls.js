@@ -1,6 +1,6 @@
-const child_process = require("child_process");
 const electron = require("electron");
 const http = require("http");
+const npm = require("npm");
 const path = require("path");
 const url = require("url");
 
@@ -22,18 +22,27 @@ exports.loadURL = (win, relativeUrl) => {
                 env[keys[i]] = process.env[keys[i]];
             }
             env.BROWSER = "none";
-            const proc = child_process.spawn("npm", [
-                "run",
-                "dev"
-            ], {
-                "cwd": path.join(__dirname, ".."),
-                "stdio": "inherit",
-                "env": env
+            npm.load({
+                "prefix": path.join(__dirname, ".."),
+                "loglevel": "verbose"
+            }, (err, cfg) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    npm.commands["run-script"]([
+                        "dev"
+                    ], (err, a) => {
+                        console.log(a);
+                        if (err) {
+                            console.error(err);
+                        }
+                        // electron.app.on("quit", () => proc.kill());
+                    });
+                }
             });
-            electron.app.on("quit", () => proc.kill());
             baseUrl = "http://localhost:3000/#";
             const loop = () => {
-                console.log("Attempting to connect to development server...");
+                // console.log("Attempting to connect to development server...");
                 http.get({
                     "protocol": "http:",
                     "hostname": "localhost",
@@ -43,8 +52,8 @@ exports.loadURL = (win, relativeUrl) => {
                     console.log("Connected to development server.");
                     win.loadURL(baseUrl + relativeUrl);
                 }).once("error", () => {
-                    console.log("Unable to connect to development server.");
-                    setTimeout(loop, 100);
+                    // console.log("Unable to connect to development server.");
+                    setTimeout(loop, 1000);
                 });
             };
             setTimeout(loop);
