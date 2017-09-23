@@ -16,12 +16,7 @@ exports.loadURL = (win, relativeUrl) => {
             }
         }
         if (isDev) {
-            let env = {};
-            const keys = Object.getOwnPropertyNames(process.env);
-            for (var i = 0; i < keys.length; ++i) {
-                env[keys[i]] = process.env[keys[i]];
-            }
-            env.BROWSER = "none";
+            process.env.BROWSER = "none";
             npm.load({
                 "prefix": path.join(__dirname, ".."),
                 "loglevel": "verbose"
