@@ -57,3 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
+# create-react-app output files
+build/
+
+# electron-packager output files
+webdav-client-*/
