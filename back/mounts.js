@@ -9,7 +9,7 @@ switch (process.platform) {
     case "linux":
         platform = require("./platform/linux");
         break;
-    case "windows":
+    case "win32":
         platform = require("./platform/windows");
         break;
     default:
