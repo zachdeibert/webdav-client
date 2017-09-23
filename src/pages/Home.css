@@ -1,45 +1,31 @@
-* {
-    user-select: none;
-}
-.nav-wrapper {
-    padding-left: 20px;
-    padding-right: 20px;
-}
-.btn-floating-fixed {
+.home .btn-floating-fixed {
     position: fixed;
     bottom: 45px;
     right: 24px;
 }
-body {
-    width: 100vw;
-    height: 100vh;
-}
-.container {
-    margin-top: 50px;
-}
-.card {
+.home .card {
     width: 200px;
     float: left;
     margin: 10px;
     position: relative;
 }
-.card img {
+.home .card img {
     opacity: 0.5;
 }
-.card-image {
+.home .card-image {
     background-color: #7F7F7F;
 }
-.card-content p {
+.home .card-content p {
     word-wrap: break-word;
 }
-.close-btn {
+.home .close-btn {
     position: absolute;
     top: -5px;
     right: -5px;
     width: 20px;
     height: 20px;
 }
-.close-btn i {
+.home .close-btn i {
     position: absolute;
     top: 0;
     left: 0;

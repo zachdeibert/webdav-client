@@ -1,0 +1,158 @@
+const electron = require("electron");
+const electronSettings = require("electron-settings");
+const http = require("http");
+const httpProxy = require("http-proxy");
+const url = require("url");
+let platform;
+
+switch (process.platform) {
+    case "linux":
+        platform = require("./platform/linux");
+        break;
+    case "windows":
+        platform = require("./platform/windows");
+        break;
+    default:
+        platform = require("./platform/dummy");
+        break;
+}
+
+let proxyServers = {};
+let unmountFuncs = {};
+const proxy = httpProxy.createProxyServer({
+    "secure": false
+});
+
+proxy.on("proxyReq", (proxyReq, req, res, opts) => {
+    const host = url.parse(req.site.url).hostname;
+    proxyReq.setHeader("Host", host);
+    proxyReq.setHeader("Cookie", req.cookies);
+});
+
+function doMount(site) {
+    const parsedUrl = url.parse(site.url);
+    let server;
+    const doConnect = () => platform.mount(`dav://localhost:${server.address().port}${parsedUrl.pathname}`);
+    if (proxyServers[parsedUrl.hostname]) {
+        server = proxyServers[parsedUrl.hostname];
+        ++server.handles;
+        doConnect();
+    } else {
+        server = proxyServers[parsedUrl.hostname] = http.createServer((req, res) => {
+            electron.session.defaultSession.cookies.get({
+                "url": site.url
+            }, (err, cookies) => {
+                if (err) {
+                    console.error(err);
+                } else {
+                    req.cookies = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+                }
+                req.site = site;
+                proxy.web(req, res, {
+                    "target": url.format({
+                        "hostname": parsedUrl.hostname,
+                        "protocol": parsedUrl.protocol
+                    })
+                });
+            });
+        });
+        const closeHandler = () => server.close();
+        electron.app.on("close", closeHandler);
+        server.on("close", () => {
+            proxyServers[parsedUrl.hostname] = null;
+            electron.app.removeListener("close", closeHandler);
+        });
+        server.handles = 1;
+        const tryListen = tryNum => {
+            const port = 49152 + Math.floor(16384 * Math.random());
+            server.listen(port, "localhost", err => {
+                if (err) {
+                    if (tryNum >= 10) {
+                        server.close();
+                        console.error("Unable to bind server");
+                    } else {
+                        tryListen(tryNum + 1);
+                    }
+                } else {
+                    doConnect();
+                }
+            });
+        };
+        tryListen(0);
+    }
+}
+
+function doUnmount(site) {
+    const parsedUrl = url.parse(site.url);
+    if (proxyServers[parsedUrl.hostname]) {
+        platform.unmount(`dav://localhost:${proxyServers[parsedUrl.hostname].address().port}${parsedUrl.pathname}`);
+        if (--proxyServers[parsedUrl.hostname].handles <= 0) {
+            proxyServers[parsedUrl.hostname].close();
+        }
+    } else {
+        console.error(`Unknown site '${site.id}'`);
+    }
+}
+
+electron.ipcMain.on("mount", (ev, id) => {
+    let sites = electronSettings.get("sites", []);
+    let site = null;
+    for (var i = 0; i < sites.length; ++i) {
+        if (sites[i].id == id) {
+            site = sites[i];
+            break;
+        }
+    }
+    if (site === null) {
+        console.error(`Unknown site '${id}'`);
+    } else if (site.mount !== false) {
+        console.error(`Site '${site.id}' is already mounted`);
+    } else {
+        console.log(`Mouting site ${site.title}...`);
+        site.mount = true;
+        doMount(site);
+        electronSettings.set("sites", sites);
+        electron.ipcMain.emit("update");
+    }
+});
+
+electron.ipcMain.on("unmount", (ev, id) => {
+    let sites = electronSettings.get("sites", []);
+    let site = null;
+    for (var i = 0; i < sites.length; ++i) {
+        if (sites[i].id == id) {
+            site = sites[i];
+            break;
+        }
+    }
+    if (site === null) {
+        console.error(`Unknown site '${id}'`);
+    } else if (site.mount === false) {
+        console.error(`Site '${site.id}' is not mounted`);
+    } else {
+        console.log(`Unmouting site ${site.title}...`);
+        site.mount = false;
+        doUnmount(site);
+        electronSettings.set("sites", sites);
+        electron.ipcMain.emit("update");
+    }
+});
+
+electron.app.on("ready", () => {
+    const sites = electronSettings.get("sites", []);
+    for (var i = 0; i < sites.length; ++i) {
+        if (sites[i].mount !== false) {
+            console.log(`Automouting site ${sites[i].title}...`);
+            doMount(sites[i]);
+        }
+    }
+});
+
+electron.app.on("quit", () => {
+    const sites = electronSettings.get("sites", []);
+    for (var i = 0; i < sites.length; ++i) {
+        if (sites[i].mount !== false) {
+            doUnmount(sites[i]);
+        }
+    }
+});
