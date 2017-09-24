@@ -52,6 +52,7 @@ electron.app.on("ready", () => {
                     }
                 });
                 mounts.quit();
+                process.exit();
             }
         }
     ]);

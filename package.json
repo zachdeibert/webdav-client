@@ -17,7 +17,11 @@
     "scripts": {
         "dev": "react-scripts start",
         "start": "electron . --dev",
-        "build": "react-scripts build"
+        "preprod": "react-scripts build",
+        "prod": "electron .",
+        "build": "react-scripts build",
+        "prepackage": "react-scripts build",
+        "package": "electron-packager . --all --asar --overwrite"
     },
     "main": "back/main.js",
     "homepage": "."
