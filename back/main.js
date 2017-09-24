@@ -14,7 +14,8 @@ electron.app.on("ready", () => {
         "center": true,
         "minWidth": 800,
         "minHeight": 600,
-        "show": false
+        "show": false,
+        "icon": path.join(__dirname, "icon.png")
     });
     urls.loadURL(win, "/");
     win.webContents.once("did-finish-load", () => {
