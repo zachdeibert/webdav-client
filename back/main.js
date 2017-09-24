@@ -1,8 +1,11 @@
 const electron = require("electron");
 const path = require("path");
+const psTree = require("ps-tree");
 const connect = require("./connect");
 const urls = require("./urls");
 require("./mounts");
+
+let tray;
 
 electron.app.on("ready", () => {
     const win = new electron.BrowserWindow({
@@ -18,18 +21,35 @@ electron.app.on("ready", () => {
         connect.init(win);
         win.show();
     });
-    const tray = new electron.Tray(path.join(__dirname, "icon.png"));
+    win.on("minimize", ev => {
+        ev.preventDefault();
+        win.hide();
+    });
+    win.on("close", ev => {
+        ev.preventDefault();
+        win.hide();
+        return false;
+    });
+    tray = new electron.Tray(path.join(__dirname, "icon.png"));
     const contextMenu = electron.Menu.buildFromTemplate([
         {
             "label": "Show WebDAV Client",
-            "type": "normal",
             "click": () => win.show()
         },
         {
             "label": "Quit WebDAV Client",
-            "type": "normal",
-            "role": "quit",
-            "click": () => electron.app.quit()
+            "click": () => {
+                electron.app.quit();
+                psTree(process.pid, (err, children) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        for (var i = 0; i < children.length; ++i) {
+                            process.kill(children[i].PID);
+                        }
+                    }
+                });
+            }
         }
     ]);
     tray.setToolTip("WebDAV Client");

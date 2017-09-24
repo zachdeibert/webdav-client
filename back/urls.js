@@ -35,7 +35,7 @@ exports.loadURL = (win, relativeUrl) => {
             });
             baseUrl = "http://localhost:3000/#";
             const loop = () => {
-                // console.log("Attempting to connect to development server...");
+                console.log("Attempting to connect to development server...");
                 http.get({
                     "protocol": "http:",
                     "hostname": "localhost",
@@ -45,7 +45,7 @@ exports.loadURL = (win, relativeUrl) => {
                     console.log("Connected to development server.");
                     win.loadURL(baseUrl + relativeUrl);
                 }).once("error", () => {
-                    // console.log("Unable to connect to development server.");
+                    console.log("Unable to connect to development server.");
                     setTimeout(loop, 1000);
                 });
             };
