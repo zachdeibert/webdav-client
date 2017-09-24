@@ -18,7 +18,6 @@ switch (process.platform) {
 }
 
 let proxyServers = {};
-let unmountFuncs = {};
 const proxy = httpProxy.createProxyServer({
     "secure": false
 });
@@ -35,26 +34,38 @@ function doMount(site) {
     const doConnect = () => platform.mount(`dav://localhost:${server.address().port}${parsedUrl.pathname}`);
     if (proxyServers[parsedUrl.hostname]) {
         server = proxyServers[parsedUrl.hostname];
-        ++server.handles;
+        server.allowedPaths.push(parsedUrl.pathname);
         doConnect();
     } else {
         server = proxyServers[parsedUrl.hostname] = http.createServer((req, res) => {
-            electron.session.defaultSession.cookies.get({
-                "url": site.url
-            }, (err, cookies) => {
-                if (err) {
-                    console.error(err);
-                } else {
-                    req.cookies = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+            const parsedUrl2 = url.parse(req.url);
+            let isValid = false;
+            for (var i = 0; i < server.allowedPaths.length; ++i) {
+                if (parsedUrl2.pathname.startsWith(server.allowedPaths[i])) {
+                    isValid = true;
+                    break;
                 }
-                req.site = site;
-                proxy.web(req, res, {
-                    "target": url.format({
-                        "hostname": parsedUrl.hostname,
-                        "protocol": parsedUrl.protocol
-                    })
+            }
+            if (isValid) {
+                electron.session.defaultSession.cookies.get({
+                    "url": site.url
+                }, (err, cookies) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        req.cookies = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+                    }
+                    req.site = site;
+                    proxy.web(req, res, {
+                        "target": url.format({
+                            "hostname": parsedUrl.hostname,
+                            "protocol": parsedUrl.protocol
+                        })
+                    });
                 });
-            });
+            } else {
+                res.end();
+            }
         });
         const closeHandler = () => server.close();
         electron.app.on("close", closeHandler);
@@ -62,7 +73,9 @@ function doMount(site) {
             proxyServers[parsedUrl.hostname] = null;
             electron.app.removeListener("close", closeHandler);
         });
-        server.handles = 1;
+        server.allowedPaths = [
+            parsedUrl.pathname
+        ];
         const tryListen = tryNum => {
             const port = 49152 + Math.floor(16384 * Math.random());
             server.listen(port, "localhost", err => {
@@ -86,7 +99,8 @@ function doUnmount(site) {
     const parsedUrl = url.parse(site.url);
     if (proxyServers[parsedUrl.hostname]) {
         platform.unmount(`dav://localhost:${proxyServers[parsedUrl.hostname].address().port}${parsedUrl.pathname}`);
-        if (--proxyServers[parsedUrl.hostname].handles <= 0) {
+        proxyServers[parsedUrl.hostname].allowedPaths.splice(proxyServers[parsedUrl.hostname].allowedPaths.indexOf(parsedUrl.pathname), 1);
+        if (proxyServers[parsedUrl.hostname].allowedPaths.length == 0) {
             proxyServers[parsedUrl.hostname].close();
         }
     } else {
