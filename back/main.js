@@ -3,7 +3,7 @@ const path = require("path");
 const psTree = require("ps-tree");
 const connect = require("./connect");
 const urls = require("./urls");
-require("./mounts");
+const mounts = require("./mounts");
 
 let tray;
 
@@ -50,6 +50,7 @@ electron.app.on("ready", () => {
                         }
                     }
                 });
+                mounts.quit();
             }
         }
     ]);

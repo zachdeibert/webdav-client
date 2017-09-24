@@ -148,11 +148,11 @@ electron.app.on("ready", () => {
     }
 });
 
-electron.app.on("quit", () => {
+exports.quit = () => {
     const sites = electronSettings.get("sites", []);
     for (var i = 0; i < sites.length; ++i) {
         if (sites[i].mount !== false) {
             doUnmount(sites[i]);
         }
     }
-});
+};
