@@ -17,6 +17,7 @@ electron.app.on("ready", () => {
         "show": false,
         "icon": path.join(__dirname, "icon.png")
     });
+    win.setMenu(null);
     urls.loadURL(win, "/");
     win.webContents.once("did-finish-load", () => {
         connect.init(win);
