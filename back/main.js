@@ -21,7 +21,9 @@ electron.app.on("ready", () => {
     urls.loadURL(win, "/");
     win.webContents.once("did-finish-load", () => {
         connect.init(win);
-        win.show();
+        if (process.argv.indexOf("--hide") < 0) {
+            win.show();
+        }
     });
     win.on("minimize", ev => {
         ev.preventDefault();
