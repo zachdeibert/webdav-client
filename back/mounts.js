@@ -32,7 +32,7 @@ proxy.on("proxyReq", (proxyReq, req, res, opts) => {
 function doMount(site) {
     const parsedUrl = url.parse(site.url);
     let server;
-    const doConnect = () => platform.mount(`dav://localhost:${server.address().port}${parsedUrl.pathname}`);
+    const doConnect = () => platform.mount(`dav://localhost:${server.address().port}${parsedUrl.pathname}`, site.mount);
     if (proxyServers[parsedUrl.hostname]) {
         server = proxyServers[parsedUrl.hostname];
         ++server.handles;
@@ -94,7 +94,7 @@ function doUnmount(site) {
     }
 }
 
-electron.ipcMain.on("mount", (ev, id) => {
+electron.ipcMain.on("mount", (ev, id, letter) => {
     let sites = electronSettings.get("sites", []);
     let site = null;
     for (var i = 0; i < sites.length; ++i) {
@@ -109,7 +109,7 @@ electron.ipcMain.on("mount", (ev, id) => {
         console.error(`Site '${site.id}' is already mounted`);
     } else {
         console.log(`Mouting site ${site.title}...`);
-        site.mount = true;
+        site.mount = letter || true;
         doMount(site);
         electronSettings.set("sites", sites);
         electron.ipcMain.emit("update");

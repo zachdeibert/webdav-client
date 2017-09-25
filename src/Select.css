@@ -1,0 +1,17 @@
+.dropdown-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    max-height: 300px !important;
+}
+.dropdown-content.active {
+    display: block;
+    opacity: 1 !important;
+}
+.select-dropdown {
+    width: 100%;
+}
+.select-wrapper .caret * {
+    line-height: 10px;
+}
