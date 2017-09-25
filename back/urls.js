@@ -8,14 +8,7 @@ let baseUrl = null;
 
 exports.loadURL = (win, relativeUrl) => {
     if (baseUrl === null) {
-        let isDev = false;
-        for (var i = 0; i < process.argv.length; ++i) {
-            if (process.argv[i] == "--dev") {
-                isDev = true;
-                break;
-            }
-        }
-        if (isDev) {
+        if (process.argv.indexOf("--dev") >= 0) {
             process.env.BROWSER = "none";
             npm.load({
                 "prefix": path.join(__dirname, ".."),

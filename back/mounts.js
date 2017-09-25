@@ -5,16 +5,20 @@ const httpProxy = require("http-proxy");
 const url = require("url");
 let platform;
 
-switch (process.platform) {
-    case "linux":
-        platform = require("./platform/linux");
-        break;
-    case "win32":
-        platform = require("./platform/windows");
-        break;
-    default:
-        platform = require("./platform/dummy");
-        break;
+if (process.argv.indexOf("--platform") < 0) {
+    switch (process.platform) {
+        case "linux":
+            platform = require("./platform/linux");
+            break;
+        case "win32":
+            platform = require("./platform/windows");
+            break;
+        default:
+            platform = require("./platform/dummy");
+            break;
+    }
+} else {
+    platform = require(process.argv[process.argv.indexOf("--platform") + 1]);
 }
 
 let proxyServers = {};
