@@ -2,7 +2,7 @@
     "name": "webdav-client",
     "version": "1.0.0",
     "dependencies": {
-        "electron": "^8.2.0",
+        "electron": "^18.3.7",
         "electron-settings": "^3.2.0",
         "http-proxy": "^1.18.0",
         "materialize-css": "^1.0.0",
